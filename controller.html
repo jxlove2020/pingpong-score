@@ -414,8 +414,21 @@
     playerA: { name: '플레이어 1', score: 0, sets: 0 },
     playerB: { name: '플레이어 2', score: 0, sets: 0 },
     serving: 'A',
+    initialServing: 'A',
     gamePoint: 11
   };
+
+  // 현재 점수와 첫 서브권으로 서브를 역산
+  function computeServing(scoreA, scoreB, initialServing, gamePoint) {
+    const total = scoreA + scoreB;
+    const deuce = scoreA >= (gamePoint - 1) && scoreB >= (gamePoint - 1);
+    if (deuce) {
+      const pointsSinceDeuce = total - 2 * (gamePoint - 1);
+      return pointsSinceDeuce % 2 === 0 ? initialServing : (initialServing === 'A' ? 'B' : 'A');
+    }
+    const serveBlock = Math.floor(total / 2);
+    return serveBlock % 2 === 0 ? initialServing : (initialServing === 'A' ? 'B' : 'A');
+  }
 
   let currentState = null;
 
@@ -447,13 +460,9 @@
   async function addScore(player) {
     await runTransaction(gameRef, (g) => {
       if (!g) return g;
+      if (!g.initialServing) g.initialServing = g.serving || 'A';
       if (player === 'A') g.playerA.score += 1;
       else g.playerB.score += 1;
-
-      const total = g.playerA.score + g.playerB.score;
-      const deuce = g.playerA.score >= 10 && g.playerB.score >= 10;
-      const serveChange = deuce ? 1 : 2;
-      if (total % serveChange === 0) g.serving = g.serving === 'A' ? 'B' : 'A';
 
       const a = g.playerA.score, b = g.playerB.score, gp = g.gamePoint;
       if ((a >= gp || b >= gp) && Math.abs(a - b) >= 2) {
@@ -461,23 +470,34 @@
         else g.playerB.sets += 1;
         g.playerA.score = 0;
         g.playerB.score = 0;
-        g.serving = a > b ? 'A' : 'B';
+        g.initialServing = a > b ? 'B' : 'A';
       }
+      g.serving = computeServing(g.playerA.score, g.playerB.score, g.initialServing, g.gamePoint);
       return g;
     });
     if (navigator.vibrate) navigator.vibrate(30);
   }
 
   window.undoScore = async (player) => {
+    let changed = false;
     await runTransaction(gameRef, (g) => {
       if (!g) return g;
-      if (player === 'A') g.playerA.score = Math.max(0, g.playerA.score - 1);
-      else g.playerB.score = Math.max(0, g.playerB.score - 1);
+      if (!g.initialServing) g.initialServing = g.serving || 'A';
+      const current = player === 'A' ? g.playerA.score : g.playerB.score;
+      if (current === 0) return g;
+      if (player === 'A') g.playerA.score -= 1;
+      else g.playerB.score -= 1;
+      g.serving = computeServing(g.playerA.score, g.playerB.score, g.initialServing, g.gamePoint);
+      changed = true;
       return g;
     });
     closeModal('undoModal');
-    showToast('점수가 취소되었습니다');
-    if (navigator.vibrate) navigator.vibrate([20, 50, 20]);
+    if (changed) {
+      showToast('점수가 취소되었습니다');
+      if (navigator.vibrate) navigator.vibrate([20, 50, 20]);
+    } else {
+      showToast('취소할 점수가 없습니다');
+    }
   };
 
   window.saveSettings = async () => {
@@ -489,6 +509,7 @@
       g.playerA.name = nameA;
       g.playerB.name = nameB;
       g.gamePoint = gp;
+      g.serving = computeServing(g.playerA.score, g.playerB.score, g.initialServing || 'A', gp);
       return g;
     });
     closeModal('settingsModal');
@@ -505,6 +526,7 @@
       if (!g) return g;
       g.playerA.score = 0;
       g.playerB.score = 0;
+      g.initialServing = 'A';
       g.serving = 'A';
       return g;
     });
@@ -520,8 +542,16 @@
     document.getElementById('settingsModal').classList.add('open');
   };
 
-  document.getElementById('btnA').addEventListener('click', () => addScore('A'));
-  document.getElementById('btnB').addEventListener('click', () => addScore('B'));
+  const lastTap = { A: 0, B: 0 };
+  function guardedScore(player) {
+    const now = Date.now();
+    if (now - lastTap[player] < 600) return;
+    lastTap[player] = now;
+    addScore(player);
+  }
+
+  document.getElementById('btnA').addEventListener('click', () => guardedScore('A'));
+  document.getElementById('btnB').addEventListener('click', () => guardedScore('B'));
 
   document.querySelectorAll('.modal-overlay').forEach(el => {
     el.addEventListener('click', (e) => { if (e.target === el) el.classList.remove('open'); });

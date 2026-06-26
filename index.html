@@ -295,6 +295,19 @@
     setTimeout(() => el.classList.remove('bump'), 200);
   }
 
+  // 점수판 화면이 꺼지지 않도록 유지
+  async function keepScreenOn() {
+    if ('wakeLock' in navigator) {
+      try {
+        await navigator.wakeLock.request('screen');
+      } catch (e) {}
+    }
+  }
+  keepScreenOn();
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') keepScreenOn();
+  });
+
   let prevA = -1, prevB = -1;
 
   onValue(gameRef, (snapshot) => {
