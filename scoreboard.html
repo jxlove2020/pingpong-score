@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>탁구 점수판</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Noto+Sans+KR:wght@700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a0f;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(0, 200, 255, 0.06) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 50%, rgba(255, 60, 120, 0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .title-bar {
+    text-align: center;
+    margin-bottom: 20px;
+    z-index: 1;
+  }
+
+  .title-bar h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(14px, 3vw, 22px);
+    color: #fff;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+
+  .title-bar .subtitle {
+    font-size: 12px;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 3px;
+    margin-top: 4px;
+  }
+
+  .channel-badge {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 3px 12px;
+    background: rgba(0,200,255,0.08);
+    border: 1px solid rgba(0,200,255,0.2);
+    border-radius: 20px;
+    font-size: 11px;
+    color: rgba(0,200,255,0.6);
+    letter-spacing: 2px;
+  }
+
+  .scoreboard {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    width: min(98vw, 900px);
+    z-index: 1;
+  }
+
+  .player-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 28px;
+    position: relative;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .player-panel:active { filter: brightness(1.18); }
+
+  .score-hint {
+    position: absolute;
+    bottom: 26px;
+    font-size: 10px;
+    color: rgba(255,255,255,0.1);
+    letter-spacing: 2px;
+  }
+  .player-panel.A .score-hint { right: 14px; }
+  .player-panel.B .score-hint { left: 14px; }
+
+  .player-panel.A {
+    background: linear-gradient(160deg, #001a2e 0%, #002a44 50%, #001520 100%);
+    border: 1px solid rgba(0, 200, 255, 0.2);
+    border-right: none;
+    border-radius: 16px 0 0 16px;
+    box-shadow: inset 0 0 60px rgba(0, 200, 255, 0.05), -4px 0 30px rgba(0, 200, 255, 0.1);
+  }
+
+  .player-panel.B {
+    background: linear-gradient(160deg, #2e0010 0%, #44001a 50%, #200010 100%);
+    border: 1px solid rgba(255, 60, 120, 0.2);
+    border-left: none;
+    border-radius: 0 16px 16px 0;
+    box-shadow: inset 0 0 60px rgba(255, 60, 120, 0.05), 4px 0 30px rgba(255, 60, 120, 0.1);
+  }
+
+  .player-panel.A.serving {
+    border-color: rgba(0,200,255,0.75);
+    box-shadow: inset 0 0 80px rgba(0,200,255,0.08), -4px 0 40px rgba(0,200,255,0.18), 0 0 0 1px rgba(0,200,255,0.35);
+  }
+  .player-panel.B.serving {
+    border-color: rgba(255,60,120,0.75);
+    box-shadow: inset 0 0 80px rgba(255,60,120,0.08), 4px 0 40px rgba(255,60,120,0.18), 0 0 0 1px rgba(255,60,120,0.35);
+  }
+
+  /* 패널 안쪽 빛번짐 펄스 */
+  .player-panel.serving::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    animation: servePanelPulse 1.8s ease-in-out infinite;
+  }
+  .player-panel.A.serving::before {
+    background: radial-gradient(ellipse at 30% 20%, rgba(0,200,255,0.2) 0%, transparent 65%);
+  }
+  .player-panel.B.serving::before {
+    background: radial-gradient(ellipse at 70% 20%, rgba(255,60,120,0.2) 0%, transparent 65%);
+  }
+  @keyframes servePanelPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.25; }
+  }
+
+  /* 코너 뱃지 */
+  .player-panel.serving::after {
+    content: '🏓 서브';
+    position: absolute;
+    top: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 5px 13px;
+    border-radius: 20px;
+    animation: badgePulse 1.2s ease-in-out infinite;
+  }
+  .player-panel.A.serving::after {
+    right: 14px;
+    color: #00c8ff;
+    background: rgba(0,200,255,0.1);
+    border: 1px solid rgba(0,200,255,0.45);
+    box-shadow: 0 0 14px rgba(0,200,255,0.35);
+  }
+  .player-panel.B.serving::after {
+    left: 14px;
+    color: #ff3c78;
+    background: rgba(255,60,120,0.1);
+    border: 1px solid rgba(255,60,120,0.45);
+    box-shadow: 0 0 14px rgba(255,60,120,0.35);
+  }
+  @keyframes badgePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.65; transform: scale(0.96); }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .player-name {
+    font-size: clamp(16px, 3.5vw, 28px);
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .player-panel.A .player-name { color: #00c8ff; text-shadow: 0 0 20px rgba(0,200,255,0.5); }
+  .player-panel.B .player-name { color: #ff3c78; text-shadow: 0 0 20px rgba(255,60,120,0.5); }
+
+  .sets-display {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    height: 20px;
+    align-items: center;
+  }
+
+  .set-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: all 0.3s ease;
+  }
+
+  .player-panel.A .set-dot.won { background: #00c8ff; box-shadow: 0 0 8px #00c8ff; border-color: #00c8ff; }
+  .player-panel.B .set-dot.won { background: #ff3c78; box-shadow: 0 0 8px #ff3c78; border-color: #ff3c78; }
+
+  .score {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(80px, 20vw, 180px);
+    font-weight: 900;
+    line-height: 1;
+    transition: transform 0.15s ease;
+    position: relative;
+  }
+
+  .player-panel.A .score {
+    color: #fff;
+    text-shadow: 0 0 40px rgba(0,200,255,0.4), 0 0 80px rgba(0,200,255,0.2);
+  }
+
+  .player-panel.B .score {
+    color: #fff;
+    text-shadow: 0 0 40px rgba(255,60,120,0.4), 0 0 80px rgba(255,60,120,0.2);
+  }
+
+  .score.bump { transform: scale(1.12); }
+
+  .divider {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    z-index: 2;
+    gap: 8px;
+  }
+
+  .divider-line {
+    width: 2px;
+    flex: 1;
+    background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.15), transparent);
+  }
+
+  .vs-text {
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 2px;
+  }
+
+  .game-point-badge {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 1px;
+    text-align: center;
+  }
+
+  .footer {
+    margin-top: 20px;
+    text-align: center;
+    z-index: 1;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .footer-link {
+    display: inline-block;
+    padding: 10px 28px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 50px;
+    color: rgba(255,255,255,0.4);
+    text-decoration: none;
+    font-size: 12px;
+    letter-spacing: 2px;
+    transition: all 0.3s ease;
+  }
+
+  .footer-link:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
+
+  .score-flash {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.1s ease;
+  }
+
+  .score-flash.A { background: radial-gradient(ellipse at left, rgba(0,200,255,0.15) 0%, transparent 70%); }
+  .score-flash.B { background: radial-gradient(ellipse at right, rgba(255,60,120,0.15) 0%, transparent 70%); }
+  .score-flash.active { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="score-flash A" id="flashA"></div>
+<div class="score-flash B" id="flashB"></div>
+
+<div class="title-bar">
+  <h1>Table Tennis</h1>
+  <div class="subtitle">SCOREBOARD</div>
+  <div class="channel-badge" id="channelBadge"></div>
+</div>
+
+<div class="scoreboard">
+  <div class="player-panel A" id="panelA">
+    <div class="player-name" id="nameA">플레이어 1</div>
+    <div class="sets-display" id="setsA"></div>
+    <div class="score" id="scoreA">0</div>
+    <div class="score-hint">탭 → 득점</div>
+  </div>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="vs-text">VS</div>
+    <div class="game-point-badge" id="gpBadge">11P</div>
+    <div class="divider-line"></div>
+  </div>
+
+  <div class="player-panel B" id="panelB">
+    <div class="player-name" id="nameB">플레이어 2</div>
+    <div class="sets-display" id="setsB"></div>
+    <div class="score" id="scoreB">0</div>
+    <div class="score-hint">탭 → 득점</div>
+  </div>
+</div>
+
+<div class="footer">
+  <a href="index.html" class="footer-link">← 채널 목록</a>
+  <a id="controllerLink" href="controller.html" class="footer-link">컨트롤러 열기 →</a>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCT4GDB5V_TMrMGfXINAnlY2wlxw86wKwE",
+    authDomain: "pingpong-e357a.firebaseapp.com",
+    databaseURL: "https://pingpong-e357a-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "pingpong-e357a",
+    storageBucket: "pingpong-e357a.firebasestorage.app",
+    messagingSenderId: "973135986658",
+    appId: "1:973135986658:web:85c31f2384334fa58003bb"
+  };
+
+  const params = new URLSearchParams(location.search);
+  const channelId = (params.get('ch') || '1').replace(/[.#$/\[\]]/g, '-');
+
+  document.getElementById('channelBadge').textContent = 'CH · ' + channelId.toUpperCase();
+  document.getElementById('controllerLink').href = 'controller.html?ch=' + encodeURIComponent(channelId);
+  document.title = `탁구 점수판 · CH ${channelId}`;
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const gameRef = ref(db, 'game/' + channelId);
+
+  function renderSets(el, count) {
+    el.innerHTML = '';
+    for (let i = 0; i < 5; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'set-dot' + (i < count ? ' won' : '');
+      el.appendChild(dot);
+    }
+  }
+
+  function flash(player) {
+    const el = document.getElementById('flash' + player);
+    el.classList.add('active');
+    setTimeout(() => el.classList.remove('active'), 300);
+  }
+
+  function bump(id) {
+    const el = document.getElementById(id);
+    el.classList.add('bump');
+    setTimeout(() => el.classList.remove('bump'), 200);
+  }
+
+  async function keepScreenOn() {
+    if ('wakeLock' in navigator) {
+      try { await navigator.wakeLock.request('screen'); } catch (e) {}
+    }
+  }
+  keepScreenOn();
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') keepScreenOn();
+  });
+
+  function computeServing(scoreA, scoreB, initialServing, gamePoint) {
+    const total = scoreA + scoreB;
+    const deuce = scoreA >= (gamePoint - 1) && scoreB >= (gamePoint - 1);
+    if (deuce) {
+      const pointsSinceDeuce = total - 2 * (gamePoint - 1);
+      return pointsSinceDeuce % 2 === 0 ? initialServing : (initialServing === 'A' ? 'B' : 'A');
+    }
+    return Math.floor(total / 2) % 2 === 0 ? initialServing : (initialServing === 'A' ? 'B' : 'A');
+  }
+
+  const lastTap = { A: 0, B: 0 };
+  async function scorePanel(player) {
+    const now = Date.now();
+    if (now - lastTap[player] < 600) return;
+    lastTap[player] = now;
+    await runTransaction(gameRef, (g) => {
+      if (!g) return g;
+      if (!g.initialServing) g.initialServing = g.serving || 'A';
+      if (player === 'A') g.playerA.score += 1;
+      else g.playerB.score += 1;
+      const a = g.playerA.score, b = g.playerB.score, gp = g.gamePoint;
+      if ((a >= gp || b >= gp) && Math.abs(a - b) >= 2) {
+        if (a > b) g.playerA.sets += 1;
+        else g.playerB.sets += 1;
+        g.playerA.score = 0;
+        g.playerB.score = 0;
+        g.initialServing = a > b ? 'B' : 'A';
+      }
+      g.serving = computeServing(g.playerA.score, g.playerB.score, g.initialServing, g.gamePoint);
+      return g;
+    });
+    if (navigator.vibrate) navigator.vibrate(30);
+  }
+
+  document.getElementById('panelA').addEventListener('click', () => scorePanel('A'));
+  document.getElementById('panelB').addEventListener('click', () => scorePanel('B'));
+
+  let prevA = -1, prevB = -1;
+
+  onValue(gameRef, (snapshot) => {
+    const g = snapshot.val();
+    if (!g) return;
+
+    document.getElementById('nameA').textContent = g.playerA.name;
+    document.getElementById('nameB').textContent = g.playerB.name;
+
+    if (prevA !== -1 && g.playerA.score !== prevA) { flash('A'); bump('scoreA'); }
+    if (prevB !== -1 && g.playerB.score !== prevB) { flash('B'); bump('scoreB'); }
+
+    prevA = g.playerA.score;
+    prevB = g.playerB.score;
+
+    document.getElementById('scoreA').textContent = g.playerA.score;
+    document.getElementById('scoreB').textContent = g.playerB.score;
+    document.getElementById('gpBadge').textContent = g.gamePoint + 'P';
+
+    renderSets(document.getElementById('setsA'), g.playerA.sets);
+    renderSets(document.getElementById('setsB'), g.playerB.sets);
+
+    document.getElementById('panelA').classList.toggle('serving', g.serving === 'A');
+    document.getElementById('panelB').classList.toggle('serving', g.serving === 'B');
+  });
+</script>
+</body>
+</html>

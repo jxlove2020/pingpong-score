@@ -82,6 +82,21 @@
   .mini-player.A .mini-sets { color: rgba(0,200,255,0.5); }
   .mini-player.B .mini-sets { color: rgba(255,60,120,0.5); }
 
+  .mini-player { cursor: pointer; transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.1s; }
+  .mini-player:active { transform: scale(0.96); }
+  .mini-player.A.serving {
+    background: rgba(0,200,255,0.14);
+    border-color: #00c8ff;
+    box-shadow: 0 0 18px rgba(0,200,255,0.45), inset 0 0 20px rgba(0,200,255,0.08);
+  }
+  .mini-player.B.serving {
+    background: rgba(255,60,120,0.14);
+    border-color: #ff3c78;
+    box-shadow: 0 0 18px rgba(255,60,120,0.45), inset 0 0 20px rgba(255,60,120,0.08);
+  }
+  .serve-tap-hint { font-size: 9px; color: rgba(255,255,255,0.15); letter-spacing: 1px; margin-top: 6px; }
+  .mini-player.serving .serve-tap-hint { display: none; }
+
   .mini-divider { width: 40px; text-align: center; flex-shrink: 0; }
 
   .serve-badge { font-size: 9px; letter-spacing: 1px; color: rgba(255,255,255,0.3); margin-top: 4px; }
@@ -271,24 +286,26 @@
 <body>
 
 <div class="top-bar">
-  <h2>CONTROLLER</h2>
-  <a href="index.html" class="scoreboard-link">점수판 보기 →</a>
+  <h2>CONTROLLER · <span id="chLabel" style="color:rgba(0,200,255,0.6)"></span></h2>
+  <a id="scoreboardLink" href="scoreboard.html" class="scoreboard-link">점수판 보기 →</a>
 </div>
 
 <div class="mini-score">
-  <div class="mini-player A">
+  <div class="mini-player A" id="miniPanelA" onclick="setServe('A')">
     <div class="mini-name" id="miniNameA">플레이어 1</div>
     <div class="mini-score-num" id="miniScoreA">0</div>
     <div class="mini-sets" id="miniSetsA">세트 0</div>
+    <div class="serve-tap-hint">탭 → 서브</div>
   </div>
   <div class="mini-divider">
     <div class="serve-indicator">🏓</div>
     <div class="serve-badge" id="serveBadge">서브</div>
   </div>
-  <div class="mini-player B">
+  <div class="mini-player B" id="miniPanelB" onclick="setServe('B')">
     <div class="mini-name" id="miniNameB">플레이어 2</div>
     <div class="mini-score-num" id="miniScoreB">0</div>
     <div class="mini-sets" id="miniSetsB">세트 0</div>
+    <div class="serve-tap-hint">탭 → 서브</div>
   </div>
 </div>
 
@@ -406,9 +423,16 @@
     appId: "1:973135986658:web:85c31f2384334fa58003bb"
   };
 
+  const params = new URLSearchParams(location.search);
+  const channelId = (params.get('ch') || '1').replace(/[.#$/\[\]]/g, '-');
+
+  document.getElementById('chLabel').textContent = 'CH · ' + channelId.toUpperCase();
+  document.getElementById('scoreboardLink').href = 'scoreboard.html?ch=' + encodeURIComponent(channelId);
+  document.title = `탁구 컨트롤러 · CH ${channelId}`;
+
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-  const gameRef = ref(db, 'game');
+  const gameRef = ref(db, 'game/' + channelId);
 
   const DEFAULT_STATE = {
     playerA: { name: '플레이어 1', score: 0, sets: 0 },
@@ -455,6 +479,8 @@
     document.getElementById('btnScoreB').textContent = g.playerB.score;
     const serverName = g.serving === 'A' ? g.playerA.name : g.playerB.name;
     document.getElementById('serveBadge').textContent = serverName + ' 서브';
+    document.getElementById('miniPanelA').classList.toggle('serving', g.serving === 'A');
+    document.getElementById('miniPanelB').classList.toggle('serving', g.serving === 'B');
   }
 
   async function addScore(player) {
@@ -540,6 +566,18 @@
       document.getElementById('inputGP').value = currentState.gamePoint;
     }
     document.getElementById('settingsModal').classList.add('open');
+  };
+
+  window.setServe = async (player) => {
+    await runTransaction(gameRef, (g) => {
+      if (!g) return g;
+      if (!g.initialServing) g.initialServing = 'A';
+      const testA = computeServing(g.playerA.score, g.playerB.score, 'A', g.gamePoint);
+      g.initialServing = (testA === player) ? 'A' : 'B';
+      g.serving = player;
+      return g;
+    });
+    if (navigator.vibrate) navigator.vibrate(20);
   };
 
   const lastTap = { A: 0, B: 0 };

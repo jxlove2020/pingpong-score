@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>탁구 점수판</title>
+<title>탁구 점수판 - 채널 선택</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Noto+Sans+KR:wght@700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Noto+Sans+KR:wght@400;700&display=swap');
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -15,9 +15,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    overflow: hidden;
     font-family: 'Noto Sans KR', sans-serif;
+    padding: 40px 24px 60px;
+    overflow-y: auto;
   }
 
   body::before {
@@ -25,240 +25,480 @@
     position: fixed;
     inset: 0;
     background:
-      radial-gradient(ellipse at 20% 50%, rgba(0, 200, 255, 0.06) 0%, transparent 60%),
-      radial-gradient(ellipse at 80% 50%, rgba(255, 60, 120, 0.06) 0%, transparent 60%);
+      radial-gradient(ellipse at 20% 30%, rgba(0, 200, 255, 0.05) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 70%, rgba(255, 60, 120, 0.05) 0%, transparent 60%);
     pointer-events: none;
   }
 
-  .title-bar {
-    text-align: center;
-    margin-bottom: 20px;
-    z-index: 1;
-  }
+  .wrap { width: min(100%, 480px); display: flex; flex-direction: column; align-items: center; gap: 0; }
 
-  .title-bar h1 {
+  .title {
     font-family: 'Orbitron', monospace;
-    font-size: clamp(14px, 3vw, 22px);
+    font-size: clamp(18px, 4vw, 26px);
     color: #fff;
     letter-spacing: 6px;
     text-transform: uppercase;
-    opacity: 0.7;
+    opacity: 0.8;
+    text-align: center;
+    margin-bottom: 6px;
   }
 
-  .title-bar .subtitle {
+  .subtitle {
     font-size: 12px;
     color: rgba(255,255,255,0.3);
     letter-spacing: 3px;
-    margin-top: 4px;
+    text-align: center;
+    margin-bottom: 32px;
   }
 
-  .scoreboard {
-    display: flex;
-    align-items: stretch;
-    gap: 0;
-    width: min(98vw, 900px);
-    z-index: 1;
-  }
+  /* ── 활성 채널 섹션 ── */
+  .active-section { width: 100%; margin-bottom: 32px; }
 
-  .player-panel {
-    flex: 1;
+  .section-header {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    padding: 24px 16px 28px;
-    position: relative;
-    transition: all 0.3s ease;
+    justify-content: space-between;
+    margin-bottom: 12px;
   }
 
-  .player-panel.A {
-    background: linear-gradient(160deg, #001a2e 0%, #002a44 50%, #001520 100%);
-    border: 1px solid rgba(0, 200, 255, 0.2);
-    border-right: none;
-    border-radius: 16px 0 0 16px;
-    box-shadow: inset 0 0 60px rgba(0, 200, 255, 0.05), -4px 0 30px rgba(0, 200, 255, 0.1);
-  }
-
-  .player-panel.B {
-    background: linear-gradient(160deg, #2e0010 0%, #44001a 50%, #200010 100%);
-    border: 1px solid rgba(255, 60, 120, 0.2);
-    border-left: none;
-    border-radius: 0 16px 16px 0;
-    box-shadow: inset 0 0 60px rgba(255, 60, 120, 0.05), 4px 0 30px rgba(255, 60, 120, 0.1);
-  }
-
-  .player-panel.serving::after {
-    content: '▶ 서브';
-    position: absolute;
-    bottom: 8px;
+  .section-label {
     font-size: 11px;
-    letter-spacing: 2px;
-    font-weight: bold;
-    animation: blink 1s ease-in-out infinite;
-  }
-
-  .player-panel.A.serving::after { color: #00c8ff; right: 12px; }
-  .player-panel.B.serving::after { content: '서브 ◀'; color: #ff3c78; left: 12px; }
-
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
-
-  .player-name {
-    font-size: clamp(16px, 3.5vw, 28px);
-    font-weight: 700;
-    letter-spacing: 2px;
-    margin-bottom: 8px;
-    text-align: center;
-  }
-
-  .player-panel.A .player-name { color: #00c8ff; text-shadow: 0 0 20px rgba(0,200,255,0.5); }
-  .player-panel.B .player-name { color: #ff3c78; text-shadow: 0 0 20px rgba(255,60,120,0.5); }
-
-  .sets-display {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 16px;
-    height: 20px;
-    align-items: center;
-  }
-
-  .set-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.2);
-    transition: all 0.3s ease;
-  }
-
-  .player-panel.A .set-dot.won { background: #00c8ff; box-shadow: 0 0 8px #00c8ff; border-color: #00c8ff; }
-  .player-panel.B .set-dot.won { background: #ff3c78; box-shadow: 0 0 8px #ff3c78; border-color: #ff3c78; }
-
-  .score {
-    font-family: 'Orbitron', monospace;
-    font-size: clamp(80px, 20vw, 180px);
-    font-weight: 900;
-    line-height: 1;
-    transition: transform 0.15s ease;
-    position: relative;
-  }
-
-  .player-panel.A .score {
-    color: #fff;
-    text-shadow: 0 0 40px rgba(0,200,255,0.4), 0 0 80px rgba(0,200,255,0.2);
-  }
-
-  .player-panel.B .score {
-    color: #fff;
-    text-shadow: 0 0 40px rgba(255,60,120,0.4), 0 0 80px rgba(255,60,120,0.2);
-  }
-
-  .score.bump { transform: scale(1.12); }
-
-  .divider {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 0 4px;
-    z-index: 2;
-    gap: 8px;
-  }
-
-  .divider-line {
-    width: 2px;
-    flex: 1;
-    background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.15), transparent);
-  }
-
-  .vs-text {
-    font-family: 'Orbitron', monospace;
-    font-size: 14px;
     color: rgba(255,255,255,0.3);
-    letter-spacing: 2px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
   }
 
-  .game-point-badge {
-    font-family: 'Orbitron', monospace;
+  .live-dot {
+    display: flex;
+    align-items: center;
+    gap: 5px;
     font-size: 10px;
-    color: rgba(255,255,255,0.2);
+    color: rgba(0,255,120,0.6);
     letter-spacing: 1px;
-    text-align: center;
   }
 
-  .footer {
-    margin-top: 20px;
-    text-align: center;
-    z-index: 1;
+  .live-dot::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #00ff78;
+    animation: pulse 1.5s ease-in-out infinite;
   }
 
-  .controller-link {
-    display: inline-block;
-    padding: 10px 28px;
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 11px 16px 11px 40px;
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 50px;
-    color: rgba(255,255,255,0.4);
-    text-decoration: none;
-    font-size: 12px;
-    letter-spacing: 2px;
-    transition: all 0.3s ease;
+    border-radius: 12px;
+    color: #fff;
+    font-size: 14px;
+    font-family: 'Noto Sans KR', sans-serif;
+    outline: none;
+    margin-bottom: 12px;
+    position: relative;
   }
 
-  .controller-link:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
+  .search-wrap {
+    position: relative;
+    width: 100%;
+    margin-bottom: 12px;
+  }
 
-  .score-flash {
+  .search-icon {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  .search-input:focus { border-color: rgba(255,255,255,0.25); }
+  .search-input::placeholder { color: rgba(255,255,255,0.2); }
+
+  .active-list { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+
+  .active-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    transition: all 0.2s;
+  }
+
+  .active-card:hover {
+    background: rgba(0,200,255,0.06);
+    border-color: rgba(0,200,255,0.2);
+  }
+
+  .active-card.hidden { display: none; }
+
+  .ch-id {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(0,200,255,0.7);
+    min-width: 36px;
+    text-align: center;
+    background: rgba(0,200,255,0.08);
+    border: 1px solid rgba(0,200,255,0.15);
+    border-radius: 8px;
+    padding: 4px 8px;
+    letter-spacing: 1px;
+    flex-shrink: 0;
+  }
+
+  .ch-info { flex: 1; min-width: 0; }
+
+  .ch-matchup {
+    font-size: 13px;
+    color: rgba(255,255,255,0.75);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 3px;
+  }
+
+  .ch-score {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 1px;
+  }
+
+  .ch-score .sa { color: rgba(0,200,255,0.6); }
+  .ch-score .sb { color: rgba(255,60,120,0.6); }
+
+  .card-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+  .card-btn {
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-family: 'Noto Sans KR', sans-serif;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+    transition: all 0.2s;
+    border: 1px solid;
+  }
+
+  .card-btn.score {
+    background: rgba(0,200,255,0.08);
+    border-color: rgba(0,200,255,0.2);
+    color: rgba(0,200,255,0.7);
+  }
+  .card-btn.score:hover { background: rgba(0,200,255,0.18); color: #00c8ff; }
+
+  .card-btn.ctrl {
+    background: rgba(255,60,120,0.08);
+    border-color: rgba(255,60,120,0.2);
+    color: rgba(255,60,120,0.7);
+  }
+  .card-btn.ctrl:hover { background: rgba(255,60,120,0.18); color: #ff3c78; }
+
+  .card-btn.del {
+    background: rgba(255,255,255,0.03);
+    border-color: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.2);
+    padding: 6px 8px;
+  }
+  .card-btn.del:hover { background: rgba(255,60,60,0.15); border-color: rgba(255,60,60,0.3); color: rgba(255,80,80,0.9); }
+
+  /* 삭제 확인 팝업 */
+  .confirm-overlay {
+    display: none;
     position: fixed;
     inset: 0;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.1s ease;
+    background: rgba(0,0,0,0.75);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .confirm-overlay.open { display: flex; }
+
+  .confirm-box {
+    background: #141420;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 18px;
+    padding: 24px;
+    width: 100%;
+    max-width: 300px;
+    text-align: center;
   }
 
-  .score-flash.A { background: radial-gradient(ellipse at left, rgba(0,200,255,0.15) 0%, transparent 70%); }
-  .score-flash.B { background: radial-gradient(ellipse at right, rgba(255,60,120,0.15) 0%, transparent 70%); }
-  .score-flash.active { opacity: 1; }
+  .confirm-box h3 { color: #fff; font-size: 15px; margin-bottom: 10px; }
+  .confirm-box p { font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 20px; letter-spacing: 0.5px; }
+
+  .confirm-btns { display: flex; gap: 10px; }
+
+  .confirm-btn {
+    flex: 1;
+    padding: 11px;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'Noto Sans KR', sans-serif;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+  }
+
+  .confirm-btn.cancel { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); }
+  .confirm-btn.ok { background: linear-gradient(135deg, #ff4444, #cc1111); color: #fff; }
+
+  .empty-msg {
+    text-align: center;
+    padding: 20px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 1px;
+    border: 1px dashed rgba(255,255,255,0.07);
+    border-radius: 12px;
+  }
+
+  .no-result-msg {
+    display: none;
+    text-align: center;
+    padding: 16px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 1px;
+  }
+
+  /* ── 구분선 ── */
+  .divider {
+    width: 100%;
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    margin: 4px 0 28px;
+  }
+
+  /* ── 빠른 채널 그리드 ── */
+  .preset-section { width: 100%; margin-bottom: 32px; }
+
+  .channel-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    width: 100%;
+  }
+
+  .channel-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    transition: all 0.2s ease;
+  }
+
+  .channel-card:hover {
+    background: rgba(0,200,255,0.07);
+    border-color: rgba(0,200,255,0.2);
+    transform: translateY(-2px);
+  }
+
+  .channel-num {
+    font-family: 'Orbitron', monospace;
+    font-size: 24px;
+    font-weight: 900;
+    color: rgba(0,200,255,0.75);
+    line-height: 1;
+  }
+
+  .channel-label { font-size: 9px; color: rgba(255,255,255,0.3); letter-spacing: 2px; }
+
+  .channel-actions { display: flex; gap: 5px; width: 100%; }
+
+  .ch-btn {
+    flex: 1;
+    padding: 6px 4px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 7px;
+    background: rgba(255,255,255,0.03);
+    color: rgba(255,255,255,0.4);
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Noto Sans KR', sans-serif;
+    text-decoration: none;
+    text-align: center;
+    display: block;
+  }
+
+  .ch-btn.score:hover { background: rgba(0,200,255,0.12); border-color: rgba(0,200,255,0.3); color: #00c8ff; }
+  .ch-btn.ctrl:hover  { background: rgba(255,60,120,0.12); border-color: rgba(255,60,120,0.3); color: #ff3c78; }
+
+  /* ── 직접 입력 ── */
+  .custom-section { width: 100%; }
+
+  .custom-row { display: flex; gap: 10px; width: 100%; align-items: center; }
+
+  .custom-input {
+    flex: 1;
+    padding: 11px 16px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    color: #fff;
+    font-size: 14px;
+    font-family: 'Noto Sans KR', sans-serif;
+    outline: none;
+  }
+
+  .custom-input::placeholder { color: rgba(255,255,255,0.2); }
+  .custom-input:focus { border-color: rgba(255,255,255,0.3); }
+
+  .custom-go {
+    padding: 11px 20px;
+    background: linear-gradient(135deg, rgba(0,200,255,0.15), rgba(0,136,204,0.15));
+    border: 1px solid rgba(0,200,255,0.25);
+    border-radius: 12px;
+    color: #00c8ff;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'Noto Sans KR', sans-serif;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .custom-go:hover { background: linear-gradient(135deg, rgba(0,200,255,0.25), rgba(0,136,204,0.25)); }
 </style>
 </head>
 <body>
+<div class="wrap">
 
-<div class="score-flash A" id="flashA"></div>
-<div class="score-flash B" id="flashB"></div>
+  <div class="title">Table Tennis</div>
+  <div class="subtitle">채널을 선택하세요</div>
 
-<div class="title-bar">
-  <h1>Table Tennis</h1>
-  <div class="subtitle">SCOREBOARD</div>
+  <!-- 활성 채널 -->
+  <div class="active-section">
+    <div class="section-header">
+      <div class="section-label">활성 채널</div>
+      <div class="live-dot">LIVE</div>
+    </div>
+
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="searchInput" type="text" placeholder="채널명 또는 선수 이름으로 검색" autocomplete="off">
+    </div>
+
+    <div class="active-list" id="activeList">
+      <div class="empty-msg" id="emptyMsg">연결 중...</div>
+    </div>
+    <div class="no-result-msg" id="noResultMsg">검색 결과가 없습니다</div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- 빠른 채널 -->
+  <div class="preset-section">
+    <div class="section-header" style="margin-bottom:12px;">
+      <div class="section-label">빠른 채널 선택</div>
+    </div>
+    <div class="channel-grid">
+      <div class="channel-card">
+        <div class="channel-num">1</div>
+        <div class="channel-label">CHANNEL</div>
+        <div class="channel-actions">
+          <a class="ch-btn score" href="scoreboard.html?ch=1">점수판</a>
+          <a class="ch-btn ctrl" href="controller.html?ch=1">컨트롤</a>
+        </div>
+      </div>
+      <div class="channel-card">
+        <div class="channel-num">2</div>
+        <div class="channel-label">CHANNEL</div>
+        <div class="channel-actions">
+          <a class="ch-btn score" href="scoreboard.html?ch=2">점수판</a>
+          <a class="ch-btn ctrl" href="controller.html?ch=2">컨트롤</a>
+        </div>
+      </div>
+      <div class="channel-card">
+        <div class="channel-num">3</div>
+        <div class="channel-label">CHANNEL</div>
+        <div class="channel-actions">
+          <a class="ch-btn score" href="scoreboard.html?ch=3">점수판</a>
+          <a class="ch-btn ctrl" href="controller.html?ch=3">컨트롤</a>
+        </div>
+      </div>
+      <div class="channel-card">
+        <div class="channel-num">4</div>
+        <div class="channel-label">CHANNEL</div>
+        <div class="channel-actions">
+          <a class="ch-btn score" href="scoreboard.html?ch=4">점수판</a>
+          <a class="ch-btn ctrl" href="controller.html?ch=4">컨트롤</a>
+        </div>
+      </div>
+      <div class="channel-card">
+        <div class="channel-num">5</div>
+        <div class="channel-label">CHANNEL</div>
+        <div class="channel-actions">
+          <a class="ch-btn score" href="scoreboard.html?ch=5">점수판</a>
+          <a class="ch-btn ctrl" href="controller.html?ch=5">컨트롤</a>
+        </div>
+      </div>
+      <div class="channel-card">
+        <div class="channel-num">6</div>
+        <div class="channel-label">CHANNEL</div>
+        <div class="channel-actions">
+          <a class="ch-btn score" href="scoreboard.html?ch=6">점수판</a>
+          <a class="ch-btn ctrl" href="controller.html?ch=6">컨트롤</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- 직접 입력 -->
+  <div class="custom-section">
+    <div class="section-header" style="margin-bottom:12px;">
+      <div class="section-label">직접 채널 입력</div>
+    </div>
+    <div class="custom-row">
+      <input class="custom-input" id="customCh" type="text" maxlength="20" placeholder="채널 이름 (예: table-A)">
+      <button class="custom-go" onclick="goCustom()">입장 →</button>
+    </div>
+  </div>
+
 </div>
 
-<div class="scoreboard">
-  <div class="player-panel A" id="panelA">
-    <div class="player-name" id="nameA">플레이어 1</div>
-    <div class="sets-display" id="setsA"></div>
-    <div class="score" id="scoreA">0</div>
+<!-- 삭제 확인 팝업 -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <h3>채널 삭제</h3>
+    <p id="confirmMsg"></p>
+    <input id="pinInput" type="password" inputmode="numeric" maxlength="4"
+      placeholder="비밀번호 입력"
+      style="width:100%;padding:10px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#fff;font-size:18px;text-align:center;letter-spacing:6px;outline:none;margin-bottom:8px;font-family:monospace;">
+    <p id="pinError" style="font-size:11px;color:#ff5050;min-height:16px;margin-bottom:12px;text-align:center;"></p>
+    <div class="confirm-btns">
+      <button class="confirm-btn cancel" onclick="closeConfirm()">취소</button>
+      <button class="confirm-btn ok" onclick="doDelete()">삭제</button>
+    </div>
   </div>
-
-  <div class="divider">
-    <div class="divider-line"></div>
-    <div class="vs-text">VS</div>
-    <div class="game-point-badge" id="gpBadge">11P</div>
-    <div class="divider-line"></div>
-  </div>
-
-  <div class="player-panel B" id="panelB">
-    <div class="player-name" id="nameB">플레이어 2</div>
-    <div class="sets-display" id="setsB"></div>
-    <div class="score" id="scoreB">0</div>
-  </div>
-</div>
-
-<div class="footer">
-  <a href="controller.html" class="controller-link">컨트롤러 열기 →</a>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCT4GDB5V_TMrMGfXINAnlY2wlxw86wKwE",
@@ -272,66 +512,144 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-  const gameRef = ref(db, 'game');
 
-  function renderSets(el, count) {
-    el.innerHTML = '';
-    for (let i = 0; i < 5; i++) {
-      const dot = document.createElement('div');
-      dot.className = 'set-dot' + (i < count ? ' won' : '');
-      el.appendChild(dot);
+  let allChannels = [];
+
+  onValue(ref(db, 'game'), (snapshot) => {
+    const list = document.getElementById('activeList');
+    const emptyMsg = document.getElementById('emptyMsg');
+
+    const data = snapshot.val();
+    if (!data) {
+      allChannels = [];
+      emptyMsg.style.display = '';
+      emptyMsg.textContent = '진행 중인 채널이 없습니다';
+      renderFilter();
+      return;
     }
-  }
 
-  function flash(player) {
-    const el = document.getElementById('flash' + player);
-    el.classList.add('active');
-    setTimeout(() => el.classList.remove('active'), 300);
-  }
-
-  function bump(id) {
-    const el = document.getElementById(id);
-    el.classList.add('bump');
-    setTimeout(() => el.classList.remove('bump'), 200);
-  }
-
-  // 점수판 화면이 꺼지지 않도록 유지
-  async function keepScreenOn() {
-    if ('wakeLock' in navigator) {
-      try {
-        await navigator.wakeLock.request('screen');
-      } catch (e) {}
-    }
-  }
-  keepScreenOn();
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') keepScreenOn();
+    allChannels = Object.entries(data).map(([id, g]) => ({ id, g }));
+    emptyMsg.style.display = 'none';
+    renderFilter();
   });
 
-  let prevA = -1, prevB = -1;
+  function renderFilter() {
+    const query = document.getElementById('searchInput').value.trim().toLowerCase();
+    const list = document.getElementById('activeList');
+    const noResult = document.getElementById('noResultMsg');
+    const emptyMsg = document.getElementById('emptyMsg');
 
-  onValue(gameRef, (snapshot) => {
-    const g = snapshot.val();
-    if (!g) return;
+    // 기존 카드 제거
+    list.querySelectorAll('.active-card').forEach(el => el.remove());
 
-    document.getElementById('nameA').textContent = g.playerA.name;
-    document.getElementById('nameB').textContent = g.playerB.name;
+    if (allChannels.length === 0) {
+      emptyMsg.style.display = '';
+      noResult.style.display = 'none';
+      return;
+    }
 
-    if (prevA !== -1 && g.playerA.score !== prevA) { flash('A'); bump('scoreA'); }
-    if (prevB !== -1 && g.playerB.score !== prevB) { flash('B'); bump('scoreB'); }
+    emptyMsg.style.display = 'none';
 
-    prevA = g.playerA.score;
-    prevB = g.playerB.score;
+    const filtered = query
+      ? allChannels.filter(({ id, g }) => {
+          return id.toLowerCase().includes(query)
+            || (g.playerA?.name || '').toLowerCase().includes(query)
+            || (g.playerB?.name || '').toLowerCase().includes(query);
+        })
+      : allChannels;
 
-    document.getElementById('scoreA').textContent = g.playerA.score;
-    document.getElementById('scoreB').textContent = g.playerB.score;
-    document.getElementById('gpBadge').textContent = g.gamePoint + 'P';
+    if (filtered.length === 0) {
+      noResult.style.display = '';
+    } else {
+      noResult.style.display = 'none';
+      filtered.forEach(({ id, g }) => {
+        const card = document.createElement('div');
+        card.className = 'active-card';
 
-    renderSets(document.getElementById('setsA'), g.playerA.sets);
-    renderSets(document.getElementById('setsB'), g.playerB.sets);
+        const nameA = g.playerA?.name || '플레이어 1';
+        const nameB = g.playerB?.name || '플레이어 2';
+        const scoreA = g.playerA?.score ?? 0;
+        const scoreB = g.playerB?.score ?? 0;
+        const setsA = g.playerA?.sets ?? 0;
+        const setsB = g.playerB?.sets ?? 0;
+        const enc = encodeURIComponent(id);
 
-    document.getElementById('panelA').classList.toggle('serving', g.serving === 'A');
-    document.getElementById('panelB').classList.toggle('serving', g.serving === 'B');
+        card.innerHTML = `
+          <div class="ch-id">${escHtml(id)}</div>
+          <div class="ch-info">
+            <div class="ch-matchup">${escHtml(nameA)} vs ${escHtml(nameB)}</div>
+            <div class="ch-score">
+              <span class="sa">${scoreA}</span>
+              <span style="color:rgba(255,255,255,0.2)"> : </span>
+              <span class="sb">${scoreB}</span>
+              <span style="margin-left:8px;color:rgba(255,255,255,0.2)">세트 ${setsA}-${setsB}</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a class="card-btn score" href="scoreboard.html?ch=${enc}">점수판</a>
+            <a class="card-btn ctrl" href="controller.html?ch=${enc}">컨트롤</a>
+            <button class="card-btn del" title="채널 삭제">✕</button>
+          </div>`;
+        card.querySelector('.card-btn.del').addEventListener('click', () => openConfirm(id));
+        list.appendChild(card);
+      });
+    }
+  }
+
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  document.getElementById('searchInput').addEventListener('input', renderFilter);
+
+  let pendingDeleteId = null;
+
+  const DELETE_PIN = '1004';
+
+  window.openConfirm = (id) => {
+    pendingDeleteId = id;
+    document.getElementById('confirmMsg').innerHTML = `<b style="color:#fff">${escHtml(id)}</b> 채널을 삭제하려면<br>비밀번호를 입력하세요`;
+    document.getElementById('pinInput').value = '';
+    document.getElementById('pinError').textContent = '';
+    document.getElementById('confirmOverlay').classList.add('open');
+    setTimeout(() => document.getElementById('pinInput').focus(), 100);
+  };
+
+  window.closeConfirm = () => {
+    pendingDeleteId = null;
+    document.getElementById('confirmOverlay').classList.remove('open');
+  };
+
+  window.doDelete = async () => {
+    if (!pendingDeleteId) return;
+    const pin = document.getElementById('pinInput').value;
+    if (pin !== DELETE_PIN) {
+      document.getElementById('pinError').textContent = '비밀번호가 틀렸습니다';
+      document.getElementById('pinInput').value = '';
+      document.getElementById('pinInput').focus();
+      return;
+    }
+    await remove(ref(db, 'game/' + pendingDeleteId));
+    closeConfirm();
+  };
+
+  document.getElementById('pinInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doDelete();
+  });
+
+  document.getElementById('confirmOverlay').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeConfirm();
+  });
+</script>
+
+<script>
+  function goCustom() {
+    const val = document.getElementById('customCh').value.trim();
+    if (!val) return;
+    window.location.href = 'scoreboard.html?ch=' + encodeURIComponent(val);
+  }
+  document.getElementById('customCh').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') goCustom();
   });
 </script>
 </body>
