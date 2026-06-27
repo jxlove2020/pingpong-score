@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#0a0a0f" rx="72"/>
+  <!-- paddle body -->
+  <ellipse cx="218" cy="234" rx="118" ry="124" fill="#002a44" stroke="#00c8ff" stroke-width="13"/>
+  <!-- paddle grip -->
+  <rect x="196" y="348" width="44" height="102" rx="22" fill="#00c8ff" opacity="0.85"/>
+  <!-- paddle center line -->
+  <line x1="218" y1="112" x2="218" y2="352" stroke="#00c8ff" stroke-width="8" opacity="0.3"/>
+  <!-- ball -->
+  <circle cx="380" cy="148" r="70" fill="#fff" opacity="0.95"/>
+  <ellipse cx="380" cy="148" rx="70" ry="24" fill="none" stroke="#ddd" stroke-width="6" opacity="0.5"/>
+  <ellipse cx="380" cy="112" rx="42" ry="14" fill="none" stroke="#ddd" stroke-width="5" opacity="0.4" transform="rotate(-20,380,148)"/>
+</svg>
