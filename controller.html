@@ -59,14 +59,14 @@
     align-items: center;
     justify-content: center;
     gap: 0;
-    padding: 16px;
+    padding: 10px 16px;
     flex-shrink: 0;
   }
 
   .mini-player {
     flex: 1;
     text-align: center;
-    padding: 10px;
+    padding: 8px 10px;
     border-radius: 12px;
   }
 
@@ -75,17 +75,7 @@
 
   .mini-name { font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 4px; letter-spacing: 1px; }
 
-  .mini-score-num {
-    font-family: 'Orbitron', monospace;
-    font-size: 36px;
-    font-weight: 900;
-    line-height: 1;
-  }
-
-  .mini-player.A .mini-score-num { color: #00c8ff; text-shadow: 0 0 15px rgba(0,200,255,0.4); }
-  .mini-player.B .mini-score-num { color: #ff3c78; text-shadow: 0 0 15px rgba(255,60,120,0.4); }
-
-  .mini-sets { font-size: 10px; margin-top: 4px; letter-spacing: 1px; }
+  .mini-sets { font-size: 13px; font-weight: 700; letter-spacing: 1px; }
   .mini-player.A .mini-sets { color: rgba(0,200,255,0.5); }
   .mini-player.B .mini-sets { color: rgba(255,60,120,0.5); }
 
@@ -276,9 +266,8 @@
   @media (orientation: landscape) and (max-height: 500px) {
     .top-bar { padding: 8px 16px; }
     .top-bar h2 { font-size: 11px; }
-    .mini-score { padding: 6px 16px; }
-    .mini-player { padding: 6px 8px; }
-    .mini-score-num { font-size: 26px; }
+    .mini-score { padding: 4px 16px; }
+    .mini-player { padding: 4px 8px; }
     .mini-sets { display: none; }
     .serve-tap-hint { display: none; }
     .mini-divider { width: 28px; }
@@ -321,7 +310,6 @@
 <div class="mini-score">
   <div class="mini-player A" id="miniPanelA" onclick="setServe('A')">
     <div class="mini-name" id="miniNameA">플레이어 1</div>
-    <div class="mini-score-num" id="miniScoreA">0</div>
     <div class="mini-sets" id="miniSetsA">세트 0</div>
     <div class="serve-tap-hint">탭 → 서브</div>
   </div>
@@ -331,7 +319,6 @@
   </div>
   <div class="mini-player B" id="miniPanelB" onclick="setServe('B')">
     <div class="mini-name" id="miniNameB">플레이어 2</div>
-    <div class="mini-score-num" id="miniScoreB">0</div>
     <div class="mini-sets" id="miniSetsB">세트 0</div>
     <div class="serve-tap-hint">탭 → 서브</div>
   </div>
@@ -497,8 +484,6 @@
   function updateUI(g) {
     document.getElementById('miniNameA').textContent = g.playerA.name;
     document.getElementById('miniNameB').textContent = g.playerB.name;
-    document.getElementById('miniScoreA').textContent = g.playerA.score;
-    document.getElementById('miniScoreB').textContent = g.playerB.score;
     document.getElementById('miniSetsA').textContent = `세트 ${g.playerA.sets}`;
     document.getElementById('miniSetsB').textContent = `세트 ${g.playerB.sets}`;
     document.getElementById('btnLabelA').textContent = g.playerA.name;
