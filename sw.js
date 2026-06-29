@@ -1,4 +1,4 @@
-const CACHE = 'pingpong-v6';
+const CACHE = 'pingpong-v7';
 const ASSETS = [
   './',
   './index.html',
