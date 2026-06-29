@@ -18,12 +18,12 @@
 
   body {
     background: #0a0a0f;
-    min-height: 100vh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
+    overflow: clip;
     font-family: 'Noto Sans KR', sans-serif;
   }
 
@@ -45,7 +45,7 @@
 
   .title-bar h1 {
     font-family: 'Orbitron', monospace;
-    font-size: clamp(14px, 3vw, 22px);
+    font-size: clamp(13px, 3vmin, 22px);
     color: #fff;
     letter-spacing: 6px;
     text-transform: uppercase;
@@ -86,7 +86,7 @@
     align-items: center;
     padding: 24px 16px 28px;
     position: relative;
-    transition: all 0.3s ease;
+    transition: border-color 0.3s, box-shadow 0.3s, filter 0.15s;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
@@ -178,13 +178,8 @@
     50% { opacity: 0.65; transform: scale(0.96); }
   }
 
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
-
   .player-name {
-    font-size: clamp(16px, 3.5vw, 28px);
+    font-size: clamp(14px, 3.5vmin, 28px);
     font-weight: 700;
     letter-spacing: 2px;
     margin-bottom: 8px;
@@ -208,7 +203,7 @@
     border-radius: 50%;
     background: rgba(255,255,255,0.1);
     border: 1px solid rgba(255,255,255,0.2);
-    transition: all 0.3s ease;
+    transition: background 0.3s, box-shadow 0.3s, border-color 0.3s;
   }
 
   .player-panel.A .set-dot.won { background: #00c8ff; box-shadow: 0 0 8px #00c8ff; border-color: #00c8ff; }
@@ -216,7 +211,7 @@
 
   .score {
     font-family: 'Orbitron', monospace;
-    font-size: clamp(80px, 20vw, 180px);
+    font-size: clamp(48px, 22vmin, 180px);
     font-weight: 900;
     line-height: 1;
     transition: transform 0.15s ease;
@@ -286,24 +281,21 @@
     text-decoration: none;
     font-size: 12px;
     letter-spacing: 2px;
-    transition: all 0.3s ease;
+    transition: background 0.3s, color 0.3s;
   }
 
   @media (hover: hover) {
     .footer-link:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
   }
 
-  /* 모바일 가로모드 */
-  @media (orientation: landscape) and (max-height: 500px) {
+  /* 높이가 좁은 화면 (가로모드 포함) */
+  @media (max-height: 500px) {
     .title-bar { margin-bottom: 8px; }
-    .title-bar h1 { font-size: clamp(11px, 2.2vh, 16px); }
     .title-bar .subtitle { font-size: 10px; margin-top: 2px; }
     .channel-badge { margin-top: 4px; padding: 2px 10px; font-size: 10px; }
-    .player-panel { padding: 10px 12px 12px; }
-    .player-name { font-size: clamp(12px, 3.5vh, 22px); margin-bottom: 4px; }
-    .sets-display { margin-bottom: 8px; height: 14px; }
-    .set-dot { width: 9px; height: 9px; }
-    .score { font-size: clamp(36px, 24vh, 130px); }
+    .player-panel { padding: 8px 12px 10px; }
+    .player-name { margin-bottom: 4px; }
+    .sets-display { margin-bottom: 6px; }
     .footer { margin-top: 8px; }
     .footer-link { padding: 6px 16px; font-size: 11px; }
   }
