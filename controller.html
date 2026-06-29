@@ -270,6 +270,25 @@
   .modal-btn.confirm { background: linear-gradient(135deg, #00c8ff, #0088cc); color: #fff; }
   .modal-btn.danger { background: linear-gradient(135deg, #ff5050, #cc2020); color: #fff; }
 
+  /* 모바일 가로모드 */
+  @media (orientation: landscape) and (max-height: 500px) {
+    .top-bar { padding: 8px 16px; }
+    .top-bar h2 { font-size: 11px; }
+    .mini-score { padding: 6px 16px; }
+    .mini-player { padding: 6px 8px; }
+    .mini-score-num { font-size: 26px; }
+    .mini-sets { display: none; }
+    .serve-tap-hint { display: none; }
+    .mini-divider { width: 28px; }
+    .serve-indicator { font-size: 14px; }
+    .main-buttons { padding: 0 12px 8px; gap: 6px; }
+    .btn-score { font-size: clamp(32px, 9vw, 64px); }
+    .btn-hint { font-size: 9px; }
+    .bottom-toolbar { padding: 0 12px 8px; gap: 6px; }
+    .tool-btn { padding: 6px 4px; font-size: 9px; }
+    .tool-btn .icon { font-size: 13px; }
+  }
+
   .undo-toast {
     position: fixed;
     bottom: 100px;
